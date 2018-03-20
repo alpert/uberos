@@ -21,9 +21,7 @@ loader:                         ; the loader label (defined as entry point in li
     mov eax, 0xCAFEBABB         ; place the number 0xCAFEBABE in the register eax
     mov esp, kernel_stack + KERNEL_STACK_SIZE	; point esp to the start of the
 						; stack (end of memory area)
-    extern sum_of_two			; the main function is defined elsewhere
-    push dword 1
-    push dword 2
-    call sum_of_two			; call main funcition, result will be in eax
+    extern main		; the main function is defined elsewhere
+    call main			; call main funcition, result will be in eax
 .loop:
     jmp .loop                   ; loop forever
