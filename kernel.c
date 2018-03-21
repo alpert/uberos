@@ -11,14 +11,19 @@
 #define FB_HIGH_BYTE_COMMAND    14
 #define FB_LOW_BYTE_COMMAND     15
 
-void fb_write_cell(unsigned int, char, unsigned char, unsigned char);
-void fb_move_cursor(unsigned short);
-
-int kernel_main() {
-    fb_write_cell(0, 'A', FB_GREEN, FB_DARK_GREY);
-    fb_write_cell(0, 'B', FB_GREEN, FB_DARK_GREY);
-    fb_move_cursor(3);
-    return 0;
+/** strlen
+ * Calculates the lenght of a given string
+ *
+ * @param str  The string
+ * return      The lenght of given string
+ */
+unsigned int strlen(const char* str)
+{
+    unsigned int len = 0;
+    while (str[len]) {
+        len++;
+    }
+    return len;
 }
 
 /** fb_write_cell:
@@ -37,6 +42,17 @@ void fb_write_cell(unsigned int i, char c, unsigned char fg, unsigned char bg)
     fb[i * 2 + 1] = ((bg & 0x0F) << 4) | (fg & 0x0F);
 }
 
+/** fb_clear
+ * Clears the frame buffer
+ *
+ */
+void fb_clear()
+{
+    for (int i = 0; i < 80 * 20; i++) {
+        fb_write_cell(i, 0,  FB_GREEN, FB_DARK_GREY);
+    }
+}
+
 /** fb_move_cursor:
  *  Moves the cursor of the framebuffer to the given position
  *
@@ -48,4 +64,21 @@ void fb_move_cursor(unsigned short pos)
     outb(FB_DATA_PORT,    ((pos >> 8) & 0x00FF));
     outb(FB_COMMAND_PORT, FB_LOW_BYTE_COMMAND);
     outb(FB_DATA_PORT,    pos & 0x00FF);
+}
+
+void fb_write(const char* data)
+{
+    unsigned int len = strlen(data);
+    for (unsigned int i = 0; i < len; i++) {
+        fb_write_cell(i, data[i], FB_GREEN, FB_DARK_GREY);
+    }
+   fb_move_cursor(len);
+}
+
+int kernel_main() {
+    fb_clear();
+
+    char message[] = "Wellcome to uberOS!";
+    fb_write(message);
+    return 0;
 }
