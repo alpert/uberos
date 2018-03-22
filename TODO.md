@@ -1,3 +1,3 @@
-[] implement screen scrolling 
-[] handle multiple writes
-[] implement keyboard input
+- [ ] implement screen scrolling 
+- [ ] handle multiple writes
+- [ ] implement keyboard input
