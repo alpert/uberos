@@ -1,52 +1,55 @@
 #include "io.h"
+#include "fb.h"
 #include "uberlib.h"
-
-#define FB_GREEN 2
-#define FB_DARK_GREY 8
-
-/* The I/O ports */
-#define FB_COMMAND_PORT         0x3D4
-#define FB_DATA_PORT            0x3D5
-
-/* The I/O port commands */
-#define FB_HIGH_BYTE_COMMAND    14
-#define FB_LOW_BYTE_COMMAND     15
+#include "ubertype.h"
 
 /* Global variable to track cursor location */
-unsigned int CL = 0;
+unsigned short CURSOR_X = 0;
+unsigned short CURSOR_Y = 0;
 
-/** fb_write_cell:
- * Writes a character with the given foreground and background to position i
- * in the framebuffer.
- *
- * @param i  The location in the framebuffer
- * @param c  The character
- * @param fg The foreground color
- * @param bg The background color
- */
-void fb_write_cell(unsigned int i, char c, unsigned char fg, unsigned char bg)
+/* framebuffer address */
+char *fb = (char *) 0x000B8000;
+
+void fb_write_cell(char c, u8int fg, u8int bg)
 {
-    char *fb = (char *) 0x000B8000;
-    fb[i * 2] = c;
-    fb[i * 2 + 1] = ((bg & 0x0F) << 4) | (fg & 0x0F);
+	if (c == '\n') {
+        /* Go to the next line if encounter a new line char */
+        CURSOR_X = 0;
+        CURSOR_Y++;
+        return;
+    }
+
+    // write the character
+    int pos = CURSOR_Y * SCREEN_W + CURSOR_X;
+    fb[pos * 2 ] = c;
+    fb[pos * 2 + 1] = ((bg & 0x0F) << 4) | (fg & 0x0F);
+    CURSOR_X++;
+
+    // move to new line if X exceeds line width
+    if (CURSOR_X >= SCREEN_W) {
+        CURSOR_X = 0;
+        CURSOR_Y++;
+    }
+    
+    // scroll if necessary
+    fb_scroll();
+    // move cursor
+    pos = CURSOR_Y * SCREEN_W + CURSOR_X;
+    fb_move_cursor(pos);
 }
 
-/** fb_clear
- * Clears the frame buffer
- *
- */
 void fb_clear()
 {
-    for (int i = 0; i < 80 * 20; i++) {
-        fb_write_cell(i, 0,  FB_GREEN, FB_DARK_GREY);
+    u16int blank = 0 | (((FB_BLACK & 0x0F) << 4) | (FB_BLACK & 0x0F)) << 8;
+    for (int i = 0; i < SCREEN_W * SCREEN_H; i++) {
+        fb[i] = blank;
     }
+    
+    CURSOR_X = 0;
+    CURSOR_Y = 0;
+    fb_move_cursor(0);
 }
 
-/** fb_move_cursor:
- *  Moves the cursor of the framebuffer to the given position
- *
- *  @param pos The new position of the cursor
- */
 void fb_move_cursor(unsigned short pos)
 {
     outb(FB_COMMAND_PORT, FB_HIGH_BYTE_COMMAND);
@@ -55,17 +58,31 @@ void fb_move_cursor(unsigned short pos)
     outb(FB_DATA_PORT,    pos & 0x00FF);
 }
 
+void fb_scroll()
+{
+    // Row 25 is the end, this means we need to scroll up
+    if (CURSOR_Y >= 25) {
+        // Move the current text chunk that makes up the screen
+        // back in the buffer by a line
+        for (int i = 0; i < SCREEN_W * SCREEN_H; i++) {
+           fb[i] = fb[i + 80];
+       }
+
+       // The last line should now be blank. Do this by writing
+       // 80 spaces to it.
+       u16int blank = 0 | (((FB_BLACK & 0x0F) << 4) | (FB_BLACK & 0x0F)) << 8;
+       for (int i = SCREEN_W * SCREEN_H; i < (SCREEN_H + 1) * SCREEN_W ; i++) {
+            fb[i] = blank;
+       }
+       // The cursor should now be on the last line.
+       CURSOR_Y = 24;
+   }
+}
+
 void fb_write(const char* data)
 {
     unsigned int len = strlen(data);
     for (unsigned int i = 0; i < len; i++) {
-	if (data[i] == '\n') {
-            /* Go to the next line if encounter a new line char */
-            CL = ((CL / 80) + 1) * 80;
-            continue;
-        }
-        fb_write_cell(CL++, data[i], FB_GREEN, FB_DARK_GREY);
-        // move cursor
-        fb_move_cursor(CL);
+        fb_write_cell(data[i], FB_GREEN, FB_DARK_GREY);
     }
 }

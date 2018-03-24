@@ -1,0 +1,8 @@
+# object files
+*.o
+
+# elf file
+*.elf
+
+# iso file
+*.iso
