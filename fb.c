@@ -1,16 +1,16 @@
 #include "io.h"
 #include "fb.h"
-#include "uberlib.h"
-#include "ubertype.h"
+#include "ulib.h"
+#include "uint.h"
 
 /* Global variable to track cursor location */
-unsigned short CURSOR_X = 0;
-unsigned short CURSOR_Y = 0;
+uint8_t CURSOR_X = 0;
+uint8_t CURSOR_Y = 0;
 
 /* framebuffer address */
-char *fb = (char *) 0x000B8000;
+static char *fb = (char *) 0x000B8000;
 
-void fb_write_cell(char c, u8int fg, u8int bg)
+void fb_write_cell(char c, uint8_t fg, uint8_t bg)
 {
 	if (c == '\n') {
         /* Go to the next line if encounter a new line char */
@@ -40,7 +40,7 @@ void fb_write_cell(char c, u8int fg, u8int bg)
 
 void fb_clear()
 {
-    u16int blank = 0 | (((FB_BLACK & 0x0F) << 4) | (FB_BLACK & 0x0F)) << 8;
+    uint16_t blank = 0 | (((FB_BLACK & 0x0F) << 4) | (FB_BLACK & 0x0F)) << 8;
     for (int i = 0; i < SCREEN_W * SCREEN_H; i++) {
         fb[i] = blank;
     }
@@ -70,7 +70,7 @@ void fb_scroll()
 
        // The last line should now be blank. Do this by writing
        // 80 spaces to it.
-       u16int blank = 0 | (((FB_BLACK & 0x0F) << 4) | (FB_BLACK & 0x0F)) << 8;
+       uint16_t blank = 0 | (((FB_BLACK & 0x0F) << 4) | (FB_BLACK & 0x0F)) << 8;
        for (int i = SCREEN_W * SCREEN_H; i < (SCREEN_H + 1) * SCREEN_W ; i++) {
             fb[i] = blank;
        }
@@ -81,7 +81,7 @@ void fb_scroll()
 
 void fb_write(const char* data)
 {
-    unsigned int len = strlen(data);
+    uint32_t len = strlen(data);
     for (unsigned int i = 0; i < len; i++) {
         fb_write_cell(data[i], FB_GREEN, FB_DARK_GREY);
     }

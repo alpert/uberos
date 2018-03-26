@@ -1,7 +1,7 @@
 #ifndef INCLUDE_FB_H
 #define INCLUDE_FB_H
 
-#include "ubertype.h"
+#include "uint.h"
 
 /* The color codes */
 #define FB_BLACK         0
@@ -33,40 +33,19 @@
 #define SCREEN_W 80
 #define SCREEN_H 25
 
-/** fb_write_cell:
- * Writes a character with the given foreground and background to position i
- * in the framebuffer.
- *
- * @param c  The character
- * @param fg The foreground color
- * @param bg The background color
- */
-void fb_write_cell(char c, u8int fg, u8int bg);
+/* Write a character to framebuffer */
+void fb_write_cell(char c, uint8_t fg, uint8_t bg);
 
-/** fb_clear
- * Clears the frame buffer
- *
- */
+/* Clear the frame buffer */
 void fb_clear();
 
-/** fb_move_cursor:
- *  Moves the cursor of the framebuffer to the given position
- *
- *  @param pos The new position of the cursor
- */
-void fb_move_cursor(unsigned short pos);
+/*  Moves the cursor of the framebuffer to the given position */
+void fb_move_cursor(uint16_t pos);
 
-/** fb_scroll
- *  Scrolls screen upwards one line
- */
+/* Scrolls screen upwards one line */
 void fb_scroll(void);
 
-/** fb_write
- *  Writed given string to the framebuffer. Handles new lines and
- *  scrolling
- *
- *  @param data String to be written to fb
- */
-void fb_write(const char* data);
+/*  Writed given string to the framebuffer scrolling */
+void fb_write(const char *data);
 
 #endif  /* INCLUDE_FB_H */
