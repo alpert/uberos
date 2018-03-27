@@ -1,4 +1,4 @@
-OBJECTS = loader.o io.o ulib.o fb.o kernel.o
+OBJECTS = loader.o io.o gdt_as.o ulib.o gdt.o fb.o kernel.o
 CC = gcc
 CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector \
          -nostartfiles -nodefaultlibs -Wall -Wextra -Werror -c
@@ -25,7 +25,7 @@ os.iso: kernel.elf
                 iso
 
 run: os.iso
-	qemu-system-x86_64 -curses -boot d -cdrom uberos.iso -m 512 -s
+	qemu-system-x86_64 -curses -boot d -cdrom uberos.iso -m 512 -serial file:uberos.log -s
 
 %.o: %.c
 	$(CC) $(CFLAGS)  $< -o $@
